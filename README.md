@@ -1,92 +1,144 @@
-![](logo.png)
+# 🛒 Gas Delivery — Client App
 
-Gas Delivery Vlora
-# GasDeliveryClient
-### HCI Project
+> **Customer-facing** Android application of the **Gas Delivery Vlora** system. Customers can sign up, browse gas products by category, build a cart, place orders, and track order status in real time.
 
-The Clients part of Gas Delivery. 
+[![Platform](https://img.shields.io/badge/platform-Android-3DDC84)]()
+[![Language](https://img.shields.io/badge/language-Java-orange)]()
+[![Firebase](https://img.shields.io/badge/backend-Firebase-yellow)]()
+[![SQLite](https://img.shields.io/badge/local-SQLite-blue)]()
+[![Course](https://img.shields.io/badge/course-HCI-purple)]()
 
-## Tools
+---
 
-* **Android Studio**
-* **Firebase**, **SQLite**
-* **Material Design**
-* **Drawer.io**
+## 📌 Overview
 
-## Project Structure
+This is the **customer-side companion** to the [GasDeliveryServer](https://github.com/denisvreshtazi/GasDeliveryServer) app. Together they form a small two-app delivery system designed during a Human-Computer Interaction course, using **Vlorë (Vlora), Albania** as the case study:
 
-* **Documents**
-      
-     * *Needefinding.pdf*
-     * *client test.pdf*
-     * *worker test.pdf*
-     * *HCI_Vreshtazi.pdf*
+- **Customers** order gas through `GasDeliveryClient` (this repo)
+- **Workers** receive and fulfill orders through `GasDeliveryServer`
 
-### The Activities are located at: 
+This app handles registration, login, browsing, cart management, order placement, and real-time order status updates.
 
-    /app/src/main/java/com/example/gasdelivery/
+![logo](logo.png)
 
-*  *MainActivity.java* - The main page. After that the user can do to  Sign Up or Sign In. The layout is loaded from *layout/activity_main.xml*. 
-*  *SignUp.java* - The page to register as a new user. The layout is loaded from *layout/activity_sign_up.xml*
-*  *SignIp.java* - The page to log in. After that the user is redirected to the Home page. The layout is loaded from *layout/activity_sign_in.xml*
-*  *Home.java* - The list of categories. Load the categories from the database(Firebase). The layout is loaded from *layout/activity_home.xml*. There is a navigation draw and a FButton Cart, tht redirects to the cart. The categories are loaded in an adapter from the class CategoryViewHolder, that loads the view from *layout/menu_item.xml*
-* *ProductList.java* - The list of products of all Categories.The container is loaded from *layout/activity_product_list.xml*. Each product is filtered by the categoryId and are loaded in an adapter from ProductViewHolder and the layout is founded at *layout/product_item.xml*. The button Add to cart execute an SQL query, that insert the product in the database.
-* *Cart.java* - The list of all products added to the cart.  This list is loaded from the local DB and not from Firebase. The view is loaded from *layout/activity_cart.xml*, the products of the cart are defined at *CartAdapter.java* with the view loaded from *layout/cart_layout.xml*. When The button Place Order is clicked is shown an Alert Dialog with the view from *layout/order_fill_time_address.xml*. After confirmed the request is uploaded in Firebase. 
-* *OrderStatus.java* - A list of the orders. Each order is reppresented as a Cardview holded at *OrderViewHolder.java* and the view from *layout/order_adapter.xml* .
+## 🛠️ Tech Stack
 
+- **Android Studio** (Java)
+- **Firebase Realtime Database** — accounts, products, orders
+- **SQLite** — local cart cache (per-user)
+- **Material Design** components
+- **Drawer.io** — wireframes & UI mock-ups
 
-* **Model**:
+## 🧱 Architecture
 
-    - *Order.java* - public class where are instantiated the proprieties of the order
-    
-    - *User.java* -  public class where are instantiated the proprieties of the User
-      
-    - *Request.java* -  public class where are instantiated the proprieties of the Request
-    
-    - *Category.java* -  public class where are instantiated the proprieties of the Categories
-    
-    - *Product.java* -  public class where are instantiated the proprieties of the Product
-      
- * **ViewHolder**:
+```
+┌────────────────────────────────────────────────┐
+│            GasDeliveryClient (Customer)        │
+│                                                │
+│  MainActivity                                  │
+│       │                                        │
+│       ├─▶ SignUp                               │
+│       │                                        │
+│       └─▶ SignIn ─▶ Home (categories)          │
+│                       │                        │
+│                       ├─▶ ProductList          │
+│                       │       │                │
+│                       │       └─▶ Add to Cart  │
+│                       │           (SQLite)     │
+│                       │                        │
+│                       ├─▶ Cart  ─▶ Place Order │
+│                       │              (Firebase)│
+│                       │                        │
+│                       └─▶ OrderStatus          │
+└────────────────────────────────────────────────┘
+                    ▲
+                    │ Firebase Realtime DB
+                    ▼
+┌────────────────────────────────────────────────┐
+│            GasDeliveryServer (Worker)          │
+└────────────────────────────────────────────────┘
+```
 
-     - *CartAdapter.java* 
-    
-     - *CategoryViewHolder* 
-     
-      - *ProductViewHolder* 
-      
-     - *OrderViewHolder.java*  
- 
-  * **Common**:
+## 🗂️ Project Structure
 
-      *Common.java* - When a User logs in all the actions he takes are made as a commonUser.  
-      
- 
- * **Database**:
+### Activities
+Located at `/app/src/main/java/com/example/gasdelivery/`
 
-      *Database.java* - The local Database used for the products added to cart. Each user has a unique cart. The products are filtered by the **UsersPhone**.  
-    
- 
- 
-  
-The xml files are located at:
+| Activity | Layout | Description |
+|---|---|---|
+| `MainActivity.java` | `layout/activity_main.xml` | Landing page — Sign Up or Sign In choice. |
+| `SignUp.java` | `layout/activity_sign_up.xml` | Register a new customer in Firebase. |
+| `SignIn.java` (typo `SignIp` in README) | `layout/activity_sign_in.xml` | Login. On success → `Home`. |
+| `Home.java` | `layout/activity_home.xml` | Lists gas product categories from Firebase. Drawer nav + floating cart button. Categories rendered via `CategoryViewHolder` (`layout/menu_item.xml`). |
+| `ProductList.java` | `layout/activity_product_list.xml` | All products of the selected category. Each product rendered via `ProductViewHolder` (`layout/product_item.xml`). "Add to cart" → SQL insert. |
+| `Cart.java` | `layout/activity_cart.xml` | Local cart contents (loaded from SQLite, not Firebase). Items via `CartAdapter` (`layout/cart_layout.xml`). "Place Order" opens a dialog (`layout/order_fill_time_address.xml`); confirmation pushes the order to Firebase. |
+| `OrderStatus.java` | `layout/order_adapter.xml` | List of the customer's orders, each rendered via `OrderViewHolder`. |
 
-    GasDelivery/app/src/main/res/
-  
-  
-the layouts are found at : 
-          
-     app/src/main/res/layout
+### Models (`com.example.gasdelivery.model`)
+- **`Order`** — order properties
+- **`User`** — user properties
+- **`Request`** — request properties
+- **`Category`** — category properties
+- **`Product`** — product properties
 
-the menu home drawer is found at : 
-        
-      app/src/main/res/layout/menu
+### ViewHolders / Adapters
+- **`CartAdapter`** — cart items
+- **`CategoryViewHolder`** — category card
+- **`ProductViewHolder`** — product card
+- **`OrderViewHolder`** — order summary
 
-the images and icon are at: 
+### Common
+- **`Common.java`** — holds the currently logged-in customer for use across activities.
 
-     res/drawable
-     
-     
-## Authors
+### Database
+- **`Database.java`** — local SQLite DB for cart contents. Each user has a unique cart, **filtered by the user's phone number** (`UsersPhone`).
 
- **Denis Vreshtazi**
+### Resources
+
+| Path | Contents |
+|---|---|
+| `app/src/main/res/layout/` | All activity & item XML layouts |
+| `app/src/main/res/layout/menu/` | Navigation drawer layouts |
+| `app/src/main/res/drawable/` | Icons & images |
+
+### Documents
+- `Needefinding.pdf` — needfinding study and personas
+- `client test.pdf` — client-side usability tests
+- `worker test.pdf` — worker-side usability tests
+- `HCI_Vreshtazi.pdf` — full coursework report
+
+## 🚀 Setup & Run
+
+### Prerequisites
+- **Android Studio** (Arctic Fox or newer recommended)
+- **Android SDK** matching the project's `compileSdkVersion`
+- A **Firebase project** with the Realtime Database enabled
+
+### Steps
+
+1. Clone the repo:
+   ```bash
+   git clone https://github.com/denisvreshtazi/GasDeliveryClient.git
+   ```
+2. Open the project in **Android Studio** and let Gradle sync.
+3. Add your **`google-services.json`** under `app/` (download from your Firebase console).
+4. Connect a device or start an emulator.
+5. **Run** ▶️.
+
+## 🛒 Cart & Ordering Flow
+
+1. Login with your phone number
+2. Browse categories on the home screen
+3. Tap a category → see all its products
+4. **Add to Cart** → product is inserted into the local SQLite DB, scoped to your phone
+5. Open the cart from the floating button → review and adjust
+6. Tap **Place Order** → fill in delivery time and address in the dialog
+7. Confirmation → the order is uploaded to Firebase, where the worker app picks it up
+
+## 🔗 Related Project
+
+➡️ **Worker-side app:** [GasDeliveryServer](https://github.com/denisvreshtazi/GasDeliveryServer)
+
+## 👤 Author
+
+**Denis Vreshtazi** — [GitHub](https://github.com/denisvreshtazi)
